@@ -57,7 +57,7 @@ for tw_i = tw_index
     end 
 
 
-    fold_out=   dir_out+"DATA_"+num2str(tw)"+s/";
+    fold_out=   dir_out+"DATA_"+num2str(tw)+"s/";
     try
         mkdir(fold_out);
     catch
