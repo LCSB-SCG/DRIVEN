@@ -14,12 +14,13 @@ This assist physicians in diagnosing the severity of apneas.
 
 
 ## Contents
-- [Python environment](#python-environment)
+- [Environments](#environments)
 - [Code description](#code-description)
 - [Results](#results)
 
-## Python environment
-
+## Environments
+- **MATLAB**: Version used: R2021a
+- **Python**: 2 environments were used. 1) For training (optimized for GPU) 2) For everything else. Both environments are in [Environments](https://github.com/LCSB-SCG/DRIVEN/tree/main/python_code).
 
 ## Code description
 
