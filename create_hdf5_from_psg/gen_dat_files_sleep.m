@@ -49,7 +49,6 @@ try
             h5create(file_out,'/y', [1 Inf ],'Datatype','int8','ChunkSize', [1 1]);
             h5create(file_out,'/time', [1 Inf ],'Datatype','int8','ChunkSize', [1 1]);
             h5create(file_out,'/sleep_label', [1 Inf ],'Datatype','int8','ChunkSize', [1 1]);
-            h5create(file_out,'/label_y_s', [1 Inf ],'Datatype','int8','ChunkSize', [1 1]);
             
             h5create(file_out,"/event", [1  tw Inf ],'Datatype','int8','ChunkSize', [1  tw 1]);
             h5create(file_out,"/sleep_time", [1  tw Inf ],'Datatype','int8','ChunkSize', [1  tw 1]);
@@ -140,7 +139,6 @@ try
             
 
             %% GEN IMG
-            %[count_img,output_vec]=gen_img(qq, DATA,file_out,tw,fs,dim,min_frequency{qq},labbb,total_sensors);
             [count_img,output_vec]=gen_img_stride_sleep(qq,DATA_short,file_out,tw,stride, fs,dim,label_short,total_sensors, spo2_delays,sleep_short, sec_init);
             total_samples=[total_samples count_img];
         end

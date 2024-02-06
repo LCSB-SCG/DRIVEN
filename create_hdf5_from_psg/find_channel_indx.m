@@ -26,27 +26,3 @@ else
 end
 
 end
-% function [all_channels,inx] = find_channel_indx(channels,current_channel)
-% % Function to find the channels of the sensors to get them from the file
-% inx=[];
-% count=0;
-% 
-% sensors = erase(current_channel, {' ', '.', '_', '-'});
-% sensors=upper(sensors);
-% 
-% for ch=1:length(channels)
-% 
-%     ind_ch = find(ismember(sensors,string(channels{ch})));
-%     if ind_ch > 0
-%         inx = [inx ind_ch];
-%         count = count + 1;
-%     end 
-% 
-% end
-% if count==ch && length(inx)==ch
-%     all_channels=1;
-% else
-%     all_channels=0;
-% end
-% 
-% end

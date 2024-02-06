@@ -34,8 +34,6 @@ min_frequency{5}=64;
 
 
 % DATA_FOLDERS
-%files = "/work/projects/heart_project/OSA_MW/OSA_subset_"+n_files+"_patients_ahi.txt";
-%files = "OSA_subset_1000_patients_ahi.txt"; %Created by sample_X_fies.m
 files = "/work/projects/heart_project/OSA_MW/TEST_SET/OSA_subset_100_patients_ahi.txt";
 files ="/work/projects/heart_project/OSA_MW/OSA_all_filtered_patients_ahi.txt";
 files_T = readtable(files, 'Delimiter', ' ');
@@ -52,17 +50,14 @@ for tw_i = tw_index
     stride = strides(tw_i);
     disp(tw)
     % Create Output Folder
-    %dir_out=   "/work/projects/heart_project/OSA_MW/all_"+num2str(tw)+"_ws_"+num2str(stride)+"_st_spo2D_1000_files_ahi_newSF/";
     dir_out=   "/work/projects/heart_project/OSA_MW/all_"+num2str(tw)+"_ws_10648_files_ahi_sleep_newSF/";
-    %dir_out=   "/work/projects/heart_project/OSA_MW/all_"+num2str(tw)+"_ws_10648_files_ahi_sleep/";
-     try
+    try
         mkdir(dir_out);
     catch
     end 
 
 
-    %fold_out=   dir_out+"DATA_1D/";
-    fold_out=   dir_out+"DATA_5s/";
+    fold_out=   dir_out+"DATA_"+num2str(tw)"+s/";
     try
         mkdir(fold_out);
     catch
@@ -70,21 +65,15 @@ for tw_i = tw_index
 
     % Go through FILES
     indxx2= randperm(height(files_T));
-    n_file = 4;
-    n_file = 67;
-    n_file = 9007;
-    %indxx2 = [1:1:10];
+
     for  n_file= indxx2
         %Get the directories of the psg and labels
         name_file = string(files_T{n_file, 1}); % 'mros-visit1-aa1224.edf';
         edf_dir = string(files_T{n_file, 2}); % "/work/projects/heart_project/backup/OSA_MROS/mros/polysomnography/edfs/visit1/";
         label_dir = string(files_T{n_file, 4}); % "/work/projects/heart_project/backup/OSA_LABELS_RAW/mros/Annotation_visit1/";   
         
-        %if contains(name_file,"mesa") 
-        %Run function to generate data
-            %disp(name_file)
-            gen_dat_files_sleep(tw, stride, name_file, label_dir, edf_dir, fold_out, channels, min_frequency, spo2_delays);
-        %end 
+        gen_dat_files_sleep(tw, stride, name_file, label_dir, edf_dir, fold_out, channels, min_frequency, spo2_delays);
+
     end
 
 end

@@ -50,7 +50,6 @@ try
             h5create(file_out,'/y', [1 dim ],'Datatype','int8');
             h5create(file_out,'/time', [1 dim ],'Datatype','int8');
             h5create(file_out,'/sleep_label', [1 dim ],'Datatype','int8');
-            h5create(file_out,'/label_y_s', [1 dim ],'Datatype','int8');
             
         catch
             disp("File already started: "+ name_out)
@@ -146,7 +145,6 @@ try
             
 
             %% GEN IMG
-            %[count_img,output_vec]=gen_img(qq, DATA,file_out,tw,fs,dim,min_frequency{qq},labbb,total_sensors);
             gen_img_complete(qq,DATA_short,file_out,dim, spo2_delays);
         end
         
