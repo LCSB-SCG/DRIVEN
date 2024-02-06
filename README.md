@@ -20,9 +20,23 @@ This assist physicians in diagnosing the severity of apneas.
 
 ## Environments
 - **MATLAB**: Version used: R2021a
-- **Python**: 2 environments were used. 1) For training (optimized for GPU) 2) For everything else. Both environments are in [Environments](https://github.com/LCSB-SCG/DRIVEN/tree/main/python_code).
+- **Python**: 2 environments were used. 1) For training (optimized for GPU) 2) For everything else. Both environments are in [Environments](https://github.com/LCSB-SCG/DRIVEN/tree/main/envitonments).
 
 ## Code description
+
+- [**From PSG to HDF5**](https://github.com/LCSB-SCG/DRIVEN/tree/main/create_hdf5_from_psg):
+    
+- [**Preliminary**](https://github.com/LCSB-SCG/DRIVEN/tree/main/python_code/preliminary):
+  
+- [**Training**](https://github.com/LCSB-SCG/DRIVEN/tree/main/python_code/training):
+
+- [**Feature extraction**](https://github.com/LCSB-SCG/DRIVEN/tree/main/python_code/feature_extraction):
+ 
+- [**Make predictions**](https://github.com/LCSB-SCG/DRIVEN/tree/main/python_code/make_prediction):
+
+- [**Models evaluation**](https://github.com/LCSB-SCG/DRIVEN/tree/main/python_code/models_evaluation):
+
+- [**Figures**](https://github.com/LCSB-SCG/DRIVEN/tree/main/python_code/figures):
 
 ## Results
 
