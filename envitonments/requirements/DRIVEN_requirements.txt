@@ -1,0 +1,13 @@
+h5py==3.7.0
+joblib==1.1.0
+keras==2.7.0
+lightgbm==3.3.0
+matplotlib==3.5.2
+numpy==1.23.1
+optuna==2.10.0
+pandas==1.4.3
+scikit-learn==1.0.1
+scipy==1.8.1
+tensorflow==2.7.0
+tensorboard==2.9.1
+protobuf==3.19.4
