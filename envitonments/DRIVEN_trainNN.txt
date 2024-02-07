@@ -1,0 +1,7 @@
+tensorflow==2.8.0
+keras==2.8.0
+numpy==1.22.3
+pandas==1.4.2
+h5py==3.6.0
+protobuf==3.20.1
+wandb==0.16.1
