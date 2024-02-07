@@ -19,8 +19,17 @@ This assist physicians in diagnosing the severity of apneas.
 - [Results](#results)
 
 ## Environments
-- **MATLAB**: Version used: R2021a
-- **Python**: 2 environments were used. 1) For training (optimized for GPU) 2) For everything else. Both environments are in [Environments](https://github.com/LCSB-SCG/DRIVEN/tree/main/envitonments).
+- **MATLAB** Version R2021a
+- **Python**:
+  1) For training the NN (optimized for GPU):
+     - Python-3.8.6-GCCcore-10.2.0
+     - CUDAcore-11.2.1
+     - cuDNN-8.1.0.77-CUDA-11.2.1
+     - [Library requirements](https://github.com/LCSB-SCG/DRIVEN/tree/main/envitonments/DRIVEN_trainNN.txt)
+  3) For the rest of the scripts.
+     - Python-3.8.6-GCCcore-10.2.0
+     - [Library requirements](https://github.com/LCSB-SCG/DRIVEN/tree/main/envitonments/DRIVEN.yml)
+
 
 ## Code description
 
