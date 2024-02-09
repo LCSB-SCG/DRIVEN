@@ -44,11 +44,25 @@ This assist physicians in diagnosing the severity of apneas.
 
 ## Code description
 
-- [**From PSG to HDF5**](https://github.com/LCSB-SCG/DRIVEN/tree/main/create_hdf5_from_psg):
-    
-- [**Preliminary**](https://github.com/LCSB-SCG/DRIVEN/tree/main/python_code/preliminary):
+- [**Preliminary**](https://github.com/LCSB-SCG/DRIVEN/tree/main/python_code/preliminary):\
+  **label_ahi.py:** Get profusion file per patient and label the sleep stages and AHI-evenst per second.\
+  **separate_files_alldb.py:** Split the dataset for train-validation-test.\
+  **get_indices.py:** Loop through window files and make dictionary with number of windows awake, sleep-ahi-negative, sleep-ahi-positive, and indices for each of these windows.
   
-- [**Training**](https://github.com/LCSB-SCG/DRIVEN/tree/main/python_code/training):
+- [**From PSG to HDF5**](https://github.com/LCSB-SCG/DRIVEN/tree/main/create_hdf5_from_psg):\
+  Pipeline to merge PSG and profusion labels and generate windows of the selected size with the relevant channels.\
+  For each PSG file, it will check that the relevant channels are present, and that the channel has the same frequency throughout the timeseries. The initial and final 30 minutes will be removed. Each channel (except from SpO2) will be Z-normalized, and all channels will be set in the same sampling frequency. For each window, the 
+  
+  
+- [**Training**](https://github.com/LCSB-SCG/DRIVEN/tree/main/python_code/training):\
+  **train_nn.py:** Load model (from file or new) and train with samples from patients for one channel. The training is done by sampling the same number of positives and negatives per file processed. The script can be used to train and detect AHI-events or sleep-awake classification (ahi_or_sleep = "ahi" or "sleep").
+
+      python train_nn.py $batch_size $fold $channel $window_size $new_model $working_directory $ahi_or_sleep $stride
+
+  **train_lgbm.py:** Load extracted freatures for training and validation and train classifier for all possible combibanitos of sensors. The training is done by sampling the same number of positives and negatives per file processed. The script can be used to train and detect AHI-events or sleep-awake classification (ahi_or_sleep = "ahi" or "sleep") and to test for the last last or the third-last layers ($last_layer = 1 or 3)
+
+      python train_lgbm.py $fold $working_directory $ahi_or_sleep $last_layer
+
 
 - [**Feature extraction**](https://github.com/LCSB-SCG/DRIVEN/tree/main/python_code/feature_extraction):
  
