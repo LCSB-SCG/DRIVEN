@@ -206,8 +206,8 @@ if __name__ == '__main__':
             print("NOT FOUND")
             print(patient)
 
-	patient_mat = labels_dir+patient[:-14]+"-label.mat"
-	scipy.io.savemat(patient_mat, labels_dict, do_compression=True)
+    patient_mat = labels_dir+patient[:-14]+"-label.mat"
+    scipy.io.savemat(patient_mat, labels_dict, do_compression=True)
 
 
 
