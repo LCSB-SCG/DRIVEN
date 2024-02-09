@@ -23,6 +23,8 @@ splits = ["1", "2", "3"]
 part = "TRAIN"
 split = "1"
 
+stride = "5"
+
 for part in parts:
     for split in splits:
         files = src+"SPLIT/"+part+"_split"+split+".txt"
@@ -35,7 +37,7 @@ for part in parts:
 
         labels_dic = {}
         for current_file in f:
-            current_file_name = src+"DATA_5s/"+current_file
+            current_file_name = src+"DATA_"+stride+"s/"+current_file
             with h5py.File(current_file_name, 'r') as hf:
                 y=hf["label_y_s"][:,0]
             
@@ -47,7 +49,7 @@ for part in parts:
             print(n_zeros, n_ones, n_twos)
             
 
-        json.dump(labels_dic, open(src+"SPLIT/dict_"+part+"_split"+split+".json", 'w' ) )
+        json.dump(labels_dic, open(src+"SPLIT/dict_"+part+"_split"+split+"_"+stride+"+s.json", 'w' ) )
 
 
 

@@ -2,7 +2,7 @@
 import optuna
 import h5py
 import random
-import sys
+import sys 
 import os
 import numpy as np
 import pandas as pd
@@ -106,17 +106,24 @@ if __name__ == '__main__':
     # # Parameters
     fold = int(sys.argv[1])
     src = sys.argv[2] # src="/work/projects/heart_project/OSA_MW/all_80_ws_10648_files_ahi_sleep_newSF/"
-    dnn_features=1280
-
-
-    s_w= src+"FEATURES/FEAT_DATA_"+str(fold)+"_ahi/"
-    seg_l="ahi"
-             
-
-    train_f =  s_w + "TRAINING_COMBINED.hdf5"
-    val_f= s_w + "VALIDATION_COMBINED.hdf5"
-
-    src_o= src +  "WEIGHTS_2out_ahi_"+str(fold)+"_all/"   
+    predict =  sys.argv[3] #ahi or sleep
+    last_layer = int(sys.argv[4]) #-3 or -1
+    
+    
+    if last_layer == 3:
+        dnn_features=1280
+        s_w= src+"FEATURES/FEAT_DATA_"+str(fold)+"_"+predict+"/"
+        train_f =  s_w + "TRAINING_COMBINED.hdf5"
+        val_f= s_w + "VALIDATION_COMBINED.hdf5"
+        src_o= src +  "WEIGHTS_2out_"+predict+"_"+str(fold)+"_all/"  
+        
+        
+    elif last_layer == 1:
+        dnn_features=2
+        s_w= src+"FEATURES/FEAT_DATA_"+str(fold)+"_"+predict+"_2Out/"
+        train_f =  s_w + "TRAINING_COMBINED_2Out.hdf5"
+        val_f= s_w + "VALIDATION_COMBINED_2Out.hdf5"
+        src_o= src +  "WEIGHTS_2out_"+predict+"_"+str(fold)+"_all/"  
 
     try:
         os.mkdir(src_o)    
@@ -137,10 +144,18 @@ if __name__ == '__main__':
     for current_sens in sens:
         
         sen_names = "_".join(map(str,current_sens))
-        model_name = src_o+"LGB_OUT_"+ seg_l+"_"+str(sen_names)+".txt"
+        model_name = src_o+"LGB_OUT_"+predict+"_"+str(sen_names)+".txt"
         if not (os.path.exists( model_name )):
             os.mknod(model_name) 
-            print(sen_names)            
+            print(sen_names)   
+            
+            if last_layer == 3:
+                results_file = src_o+"LGBMCOEF_f_"+predict+"_"+str(sen_names)+'.txt' 
+                model_file = src_o+"LGBD_MODEL_f"+predict+"_"+str(sen_names)+'.pkl' 
+            
+            elif last_layer == 1:
+                results_file = src_o+"LGBMCOEF_f_"+predict+"_"+str(sen_names)+'_m.txt' 
+                model_file = src_o+"LGBD_MODEL_f"+predict+"_"+str(sen_names)+'_m.pkl' 
             
             inx_feat=np.array([] ,dtype=int)  
             
@@ -260,7 +275,7 @@ if __name__ == '__main__':
         
             ## FEATURES RELEVANCE:
             relevance=model.feature_importances_
-            np.savetxt(src_o+"LGBMCOEF_f_"+ seg_l+"_"+str(sen_names)+'.txt', relevance, fmt='%f', delimiter='\n') 
+            np.savetxt(results_file, relevance, fmt='%f', delimiter='\n') 
             
             # ## SAVE RESULT
             with open(model_name, 'a') as file:
@@ -272,7 +287,7 @@ if __name__ == '__main__':
    
             
             # # save model
-            joblib.dump(model, src_o+"LGBD_MODEL_f"+ seg_l+"_"+str(sen_names)+'.pkl')
+            joblib.dump(model, model_file)
 
 
 
