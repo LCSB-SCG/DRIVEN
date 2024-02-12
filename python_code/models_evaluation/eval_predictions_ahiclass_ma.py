@@ -39,13 +39,9 @@ def toc():
 
       
 
-def calculate_ahi(y_pred, y_real, threshold, ws, st, factor):
-    num_hours = len(y_pred)*st / 3600 
-    dp_permin = 60/ws*(ws/st) #N of datapoints per min
+def calculate_ahi(y_pred, y_real, threshold, factor):
     y_pred_binary =  y_pred > threshold
     tn, fp, fn, tp = conf_matrix(y_real, y_pred_binary)
-    #print(y_pred_binary)
-    #ahi = sum(y_pred_binary)/num_hours/dp_permin
     ahi = sum(y_pred_binary)/len(y_pred_binary) * factor
     ahi_class = calculate_ahi_class(ahi)   
     return tn, fp, fn, tp, ahi, ahi_class
@@ -56,9 +52,7 @@ def conf_matrix(y_real, y_pred_binary):
     try:
         tn, fp, fn, tp = metrics.confusion_matrix(y_real, y_pred_binary).ravel()
     except:
-        #print(y_real)
-        #print(y_pred_binary)
-        #print(metrics.confusion_matrix(y_real, y_pred_binary))
+        # if all positive or all negative the line before wont give a matrix
         tn = sum(y_real==0)
         fp = 0
         fn = 0
@@ -79,8 +73,6 @@ def prob_moving_average(y_pred, n_past):
 
 
 
-
-
 def calculate_ahi_class(ahi):
     if ahi < 5:
         ahi_class=0
@@ -94,45 +86,18 @@ def calculate_ahi_class(ahi):
     return ahi_class
 
 
-
-"""
-file = "/work/projects/heart_project/OSA_MW/all_30_ws_10648_files_ahi_sleep_newSF/PREDICTIONS/VAL/Model3_1_Ch_2_3_4_5/mros-visit1-aa0744.hdf5"
-with h5py.File(file, 'r') as f:
-    y_real = np.array(f["y_real"][:]) 
-    y_pred = np.array(f["y_pred"][:])
-    y_sleep = np.array(f["y_sleep"][:]) 
-
-y_all = np.append([y_real], [y_pred], axis=0)
-y_all2 = np.append(y_all, [y_sleep], axis=0)
-
-y_pred_ma = prob_moving_average(y_pred, n_past)
-y_all3 = np.append(y_all2, [y_pred_ma], axis=0)
-
-np.savetxt("/scratch/users/mretamales/OSA_scratch/new_pipeline/values_st15.csv", y_all3, delimiter=",")
-
-ws = 30
-st=15
-n_past=2
-threshold=0.67
-calculate_ahi_moving_average(y_pred, threshold, ws, st, n_past)
-
-
-for n_past in range(1,10):
-    for threshold in [0.5, 0.6, 0.7]:
-        calculate_ahi_moving_average(y_pred, threshold, ws, st, n_past)
-
-"""
-if __name__ == '__main__':
-    
-    # python eval_predictions_ahiclass.py "/work/projects/heart_project/OSA_MW/all_80_ws_10648_files_ahi_sleep_newSF/" 80 "VAL"
-
-    params = {'legend.fontsize': 'large',
+params = {'legend.fontsize': 'large',
             #'figure.figsize': (15, 5),
             'axes.labelsize': 'large',
             'axes.titlesize':'x-large',
             'xtick.labelsize':'medium',
             'ytick.labelsize':'medium'}
-    pylab.rcParams.update(params)
+
+pylab.rcParams.update(params)
+    
+
+if __name__ == '__main__':
+
     ##  CHANNELS
     # 1 ECG
     # 2 ABDOMINAL
@@ -152,6 +117,8 @@ if __name__ == '__main__':
     fold = str(sys.argv[5])
     model_type = str(sys.argv[6])
     channels = str(sys.argv[7])
+    
+    plots = True
     
     
     ch_names = ["Abdominal", "Thoracic", "Flow", "SpO2"]
@@ -214,7 +181,6 @@ if __name__ == '__main__':
     y_reals = []
     y_preds = []
     y_sleeps =[]
-    y_preds_ma = [[],[],[],[],[]]
     
     patient_one = []
     ahi_real_one = []
@@ -308,49 +274,49 @@ if __name__ == '__main__':
         total_real_sleep_one.append(len_y_pred_sleep)
         
         
-        
-        for n_past in range(1,2):
-            y_pred_ma = prob_moving_average(y_pred, n_past)
-            y_preds_ma[n_past-1].extend(y_pred_ma)
-            y_pred_ma_sleep = np.array(y_pred_ma)[indx_s]
-            for threshold_it in range(40,90):
-                threshold = threshold_it/100
-                tn, fp, fn, tp, ahi, ahi_class = calculate_ahi(y_pred_ma, y_real, threshold, ws, st, factor)
-                tn_sleep, fp_sleep, fn_sleep, tp_sleep, ahi_sleep, ahi_class_sleep = calculate_ahi(y_pred_ma_sleep, y_real_sleep, threshold, ws, st, factor)
-                
-                
-                patients.append(patient)
-                ahi_reals.append(ahi_real_f)
-                ahi_real_classes.append(ahi_real_class)
-                thresholds.append(threshold )
-                n_pasts.append(n_past)
-                tns.append(tn) 
-                fps.append(fp)
-                fns.append(fn)
-                tps.append(tp)
-                
-                per_positives.append((fp+tp)/(tn+fp+fn+tp))
-                acs.append((tn+tp)/(tn+fp+fn+tp))
-                prs.append(tp/(tp+fp))
-                recs.append(tp/(tp+fn))
-                f1s.append(2*tp/(2*tp+fp+fn))
     
-                ahi_scores.append(ahi)
-                ahi_classes.append(ahi_class)
-                
-                tn_sleeps.append(tn_sleep) 
-                fp_sleeps.append(fp_sleep)
-                fn_sleeps.append(fn_sleep)
-                tp_sleeps.append(tp_sleep)
+        n_past = 1
+        y_pred_ma = prob_moving_average(y_pred, n_past)
+        y_pred_ma_sleep = np.array(y_pred_ma)[indx_s]
+        
+        for threshold_it in range(40,90):
+            threshold = threshold_it/100
+            tn, fp, fn, tp, ahi, ahi_class = calculate_ahi(y_pred_ma, y_real, threshold, factor)
+            tn_sleep, fp_sleep, fn_sleep, tp_sleep, ahi_sleep, ahi_class_sleep = calculate_ahi(y_pred_ma_sleep, y_real_sleep, threshold, factor)
+            
+            
+            patients.append(patient)
+            ahi_reals.append(ahi_real_f)
+            ahi_real_classes.append(ahi_real_class)
+            thresholds.append(threshold )
+            n_pasts.append(n_past)
+            tns.append(tn) 
+            fps.append(fp)
+            fns.append(fn)
+            tps.append(tp)
+            
+            per_positives.append((fp+tp)/(tn+fp+fn+tp))
+            acs.append((tn+tp)/(tn+fp+fn+tp))
+            prs.append(tp/(tp+fp))
+            recs.append(tp/(tp+fn))
+            f1s.append(2*tp/(2*tp+fp+fn))
 
-                per_positive_sleeps.append((fp_sleep+tp_sleep)/(tn_sleep+fp_sleep+fn_sleep+tp_sleep))
-                ac_sleeps.append((tn_sleep+tp_sleep)/(tn_sleep+fp_sleep+fn_sleep+tp_sleep))
-                pr_sleeps.append(tp_sleep/(tp_sleep+fp_sleep))
-                rec_sleeps.append(tp_sleep/(tp_sleep+fn_sleep))
-                f1_sleeps.append(2*tp_sleep/(2*tp_sleep+fp_sleep+fn_sleep))
-                
-                ahi_sleep_scores.append(ahi_sleep)
-                ahi_sleep_classes.append(ahi_class_sleep)
+            ahi_scores.append(ahi)
+            ahi_classes.append(ahi_class)
+            
+            tn_sleeps.append(tn_sleep) 
+            fp_sleeps.append(fp_sleep)
+            fn_sleeps.append(fn_sleep)
+            tp_sleeps.append(tp_sleep)
+
+            per_positive_sleeps.append((fp_sleep+tp_sleep)/(tn_sleep+fp_sleep+fn_sleep+tp_sleep))
+            ac_sleeps.append((tn_sleep+tp_sleep)/(tn_sleep+fp_sleep+fn_sleep+tp_sleep))
+            pr_sleeps.append(tp_sleep/(tp_sleep+fp_sleep))
+            rec_sleeps.append(tp_sleep/(tp_sleep+fn_sleep))
+            f1_sleeps.append(2*tp_sleep/(2*tp_sleep+fp_sleep+fn_sleep))
+            
+            ahi_sleep_scores.append(ahi_sleep)
+            ahi_sleep_classes.append(ahi_class_sleep)
                 
                 
         
@@ -376,14 +342,10 @@ if __name__ == '__main__':
                     
     ahi_results_patients.columns = colnames
 
-    #with open(output_dir+"ahi_scores/"+results_name+"_ahi_scores_patients_"+data_set+".csv", "w") as f:
-    #    ahi_results_patients.to_csv(f)
+    with open(output_dir+"ahi_scores/"+results_name+"_ahi_scores_patients_"+data_set+".csv", "w") as f:
+        ahi_results_patients.to_csv(f)
         
 
-    
-    #y_reals.extend(y_real)
-    #y_preds.extend(y_pred)
-    #y_sleeps.extend(y_sleep)
     
     indx_s = np.nonzero(y_sleeps)
     #print(indx_s[0])
@@ -423,9 +385,6 @@ if __name__ == '__main__':
         try:
             tn, fp, fn, tp = metrics.confusion_matrix(y_reals, y_preds_binary).ravel()
         except:
-            #print(y_reals)
-            #print(y_preds_binary)
-            #print(metrics.confusion_matrix(y_reals, y_preds_binary))
             tn=sum(y_reals==0)
             fp=0
             fn=0
@@ -448,9 +407,6 @@ if __name__ == '__main__':
         try:
             tn_sleep, fp_sleep, fn_sleep, tp_sleep = metrics.confusion_matrix(y_reals_sleep, y_preds_sleep_binary).ravel()
         except:
-            #print(y_reals_sleep)
-            #print(y_preds_sleep_binary )
-            #print(metrics.confusion_matrix(y_reals_sleep, y_preds_sleep_binary ))
             tn_sleep=sum(y_reals_sleep==0)
             fp_sleep=0
             fn_sleep=0
@@ -502,17 +458,21 @@ if __name__ == '__main__':
                     
     classif_results.columns = colnames
 
-    #with open(output_dir+"ahi_scores/"+results_name+"_ahi_scores_classification_"+data_set+".csv", "w") as f:
-    #    classif_results.to_csv(f)
+    with open(output_dir+"ahi_scores/"+results_name+"_ahi_scores_classification_"+data_set+".csv", "w") as f:
+        classif_results.to_csv(f)
     
     
     # PLOT CLASSIFICATION FIGURE and SAVE RESULTS OF PLOTS FOR LATER 
-    fig_new = False
-    if fig_new:
+    fpr, tpr, _ = metrics.roc_curve(y_reals_sleep, y_preds_sleep)
+    auroc = metrics.roc_auc_score(y_reals_sleep, y_preds_sleep)
+    
+    pre_arr, rec_arr, _ = metrics.precision_recall_curve(y_reals_sleep, y_preds_sleep)
+    aupr = metrics.average_precision_score(y_reals_sleep, y_preds_sleep)
+       
+    
+    if plots:
         fig, axs = plt.subplots(1, 3, figsize=(15, 5))
         
-        fpr, tpr, _ = metrics.roc_curve(y_reals_sleep, y_preds_sleep)
-        auroc = metrics.roc_auc_score(y_reals_sleep, y_preds_sleep)
 
         axs[0].plot(fpr, tpr, label=f'AUROC = {auroc:.2f}')
         axs[0].set_title("ROC Curve")
@@ -521,9 +481,7 @@ if __name__ == '__main__':
         axs[0].legend()
         #plt.savefig(files_out+"roc_model_2_"+ch_names+".png")
 
-        pre_arr, rec_arr, _ = metrics.precision_recall_curve(y_reals_sleep, y_preds_sleep)
-        aupr = metrics.average_precision_score(y_reals_sleep, y_preds_sleep)
-        
+         
         axs[1].plot(rec_arr, pre_arr, label=f'AUPR = {aupr:.2f}')
         axs[1].set_title("PR Curve")
         axs[1].set_xlabel("Recall")
@@ -550,27 +508,28 @@ if __name__ == '__main__':
         #fig.tight_layout()
         fig.tight_layout(rect=[0, 0.03, 1, 0.90])
         fig.suptitle(data_set+" set. Window Size: "+str(ws)+", Trial: "+fold+", Channels: "+channels_name, fontsize=20)
-        #fig.savefig(output_dir+"figures/"+results_name+"_ahi_scores_classification_"+data_set+".png")
+        fig.savefig(output_dir+"figures/"+results_name+"_ahi_scores_classification_"+data_set+".png")
         
 
-        dict_curves = {"fpr_roc": fpr.tolist(), "tpr_roc": tpr.tolist(),  "auroc": auroc, "pre_pr": pre_arr.tolist(), 
-                    "rec_pr": rec_arr.tolist(), "aupr": aupr, "acc": acs_sleep_all, "prs": prs_sleep_all, 
-                    "rec": recs_sleep_all, "f1": f1s_sleep_all, "f1_patients": f1_patients_ws}
+    dict_curves = {"fpr_roc": fpr.tolist(), "tpr_roc": tpr.tolist(),  "auroc": auroc, "pre_pr": pre_arr.tolist(), 
+                "rec_pr": rec_arr.tolist(), "aupr": aupr, "acc": acs_sleep_all, "prs": prs_sleep_all, 
+                "rec": recs_sleep_all, "f1": f1s_sleep_all, "f1_patients": f1_patients_ws}
+    
+
+    with open(output_dir+"curves/"+results_name+"_"+data_set+"_curves.txt", "w", ) as fp:
+        # Load the dictionary from the file
+        json.dump(dict_curves, fp)
+    
+    fpr, tpr, _ = metrics.roc_curve(y_reals_sleep, y_preds_sleep)
+    auroc = metrics.roc_auc_score(y_reals_sleep, y_preds_sleep)
+    
+    pre_arr, rec_arr, _ = metrics.precision_recall_curve(y_reals_sleep, y_preds_sleep)
+    aupr = metrics.average_precision_score(y_reals_sleep, y_preds_sleep)
         
-        #print(dict_curves)   
-        #np.save(results_name+"_curves.txt", dict_curves)  
-        #with open(output_dir+"curves/"+results_name+"_"+data_set+"_curves.txt", "w", ) as fp:
-        with open("/scratch/users/mretamales/OSA_scratch/new_pipeline_curves.txt", "w", ) as fp:
-            # Load the dictionary from the file
-            json.dump(dict_curves, fp)
-    
-    
-    if True:
+        
+    if plots:
         fig, axs = plt.subplots(1, 3, figsize=(15, 5))
-        
-        fpr, tpr, _ = metrics.roc_curve(y_reals_sleep, y_preds_sleep)
-        auroc = metrics.roc_auc_score(y_reals_sleep, y_preds_sleep)
-
+    
         axs[0].plot(fpr, tpr, label=f'AUROC = {auroc:.2f}')
         axs[0].set_title("ROC Curve")
         axs[0].set_xlabel("FPR")
@@ -578,9 +537,6 @@ if __name__ == '__main__':
         axs[0].legend()
         #plt.savefig(files_out+"roc_model_2_"+ch_names+".png")
 
-        pre_arr, rec_arr, _ = metrics.precision_recall_curve(y_reals_sleep, y_preds_sleep)
-        aupr = metrics.average_precision_score(y_reals_sleep, y_preds_sleep)
-        
         axs[1].plot(rec_arr, pre_arr, label=f'AUPR = {aupr:.2f}')
         axs[1].set_title("PR Curve")
         axs[1].set_xlabel("Recall")
@@ -607,23 +563,20 @@ if __name__ == '__main__':
         #fig.tight_layout()
         fig.tight_layout(rect=[0, 0.03, 1, 0.90])
         fig.suptitle(data_set+" set. Window Size: "+str(ws)+", Trial: "+fold+", Channels: "+channels_name, fontsize=20)
-        #fig.savefig(output_dir+"figures/"+results_name+"_ahi_scores_classification_"+data_set+".png")
+        fig.savefig(output_dir+"figures/"+results_name+"_ahi_scores_classification_"+data_set+".png")
         
 
-        dict_curves = {"fpr_roc": fpr.tolist(), "tpr_roc": tpr.tolist(),  "auroc": auroc, "pre_pr": pre_arr.tolist(), 
-                    "rec_pr": rec_arr.tolist(), "aupr": aupr, "acc": acs_sleep_all, "prs": prs_sleep_all, 
-                    "rec": recs_sleep_all, "f1": f1s_sleep_all, "f1_patients": f1_patients_ws}
-        
-        #print(dict_curves)   
-        #np.save(results_name+"_curves.txt", dict_curves)  
-        with open(output_dir+"curves/"+results_name+"_"+data_set+"_curves.txt", "w", ) as fp:
-            # Load the dictionary from the file
-            json.dump(dict_curves, fp)
+    dict_curves = {"fpr_roc": fpr.tolist(), "tpr_roc": tpr.tolist(),  "auroc": auroc, "pre_pr": pre_arr.tolist(), 
+                "rec_pr": rec_arr.tolist(), "aupr": aupr, "acc": acs_sleep_all, "prs": prs_sleep_all, 
+                "rec": recs_sleep_all, "f1": f1s_sleep_all, "f1_patients": f1_patients_ws}
+    
+
+    with open(output_dir+"curves/"+results_name+"_"+data_set+"_curves_sleep.txt", "w", ) as fp:
+        # Load the dictionary from the file
+        json.dump(dict_curves, fp)
     
     if data_set == "VAL":
-        #threshold_best_min = classif_results[abs(classif_results.dif_pred_real_positives) == abs(classif_results.dif_pred_real_positives).min()].iloc[0]['thresholds']
-        #threshold_best_acc = classif_results[classif_results.ac_sleeps == (classif_results.ac_sleeps).max()] # .iloc[0]['thresholds']
-        
+        # Try different thresholds  
         classif_results_best_f1_classif = classif_results[classif_results.f1_sleeps == (classif_results.f1_sleeps).max()]
         threshold_best_f1_classif = classif_results_best_f1_classif.iloc[0]['thresholds']
         
@@ -680,8 +633,8 @@ if __name__ == '__main__':
            
     patients_best = ahi_results_patients[ahi_results_patients.thresholds==threshold_best_f1_classif]
     patients_best = patients_best[patients_best.n_pasts==1]
-    #with open(output_dir+"best_ahis/"+results_name+"_best_patient_F1scores_"+data_set+".csv", "w") as f:
-    #    patients_best.to_csv(f)
+    with open(output_dir+"best_ahis/"+results_name+"_best_patient_F1scores_"+data_set+".csv", "w") as f:
+        patients_best.to_csv(f)
         
         
     patients_best = ahi_results_patients[ahi_results_patients.thresholds==threshold_best_f1_ahi]
@@ -707,89 +660,60 @@ if __name__ == '__main__':
             f.write('\n')
             f.write('REG_intercept_bestf_f1_ahi,'+str(reg.intercept_))
             
-            
-    #with open(output_dir+"best_ahis/"+results_name+"_threshold_best_f1_ahi_"+data_set+".csv", "w") as f:
-    #    patients_best.to_csv(f)
+    
+    if plots():
+        fig, axs = plt.subplots(1, 2, figsize=(10, 5))
+        
+        colors = patients_best.ahi_real_classes
+        #print(colors)
+        colors_scale = ["r", "b", "g", "m"]
+        colors_points = [colors_scale[int(c)] for c in colors]
+
+        
+        axs[0].scatter(0,0, c="r", label = "Healthy")
+        axs[0].scatter(0,0, c="b", label = "Mild")
+        axs[0].scatter(0,0, c="g", label = "Moderate")
+        axs[0].scatter(0,0, c="m", label = "Severe")
+        axs[0].scatter(patients_best.ahi_reals, patients_best.ahi_sleep_scores, c=colors_points)
+        axs[0].plot([0,110],[5,5], 'k--')
+        axs[0].plot([0,110],[15,15], 'k--')
+        axs[0].plot([0,110],[30,30], 'k--')
+        axs[0].plot([0,110],[0,110], 'k-')
+        
+        axs[0].text(80, 7, "Pred. AHI = 5")
+        axs[0].text(80, 17, "Pred. AHI = 15")
+        axs[0].text(80, 32, "Pred. AHI = 30")
+        axs[0].set_xlim([0, 110]) 
+        axs[0].set_ylim([0, 110]) 
+        axs[0].legend() 
+        axs[0].set_xlabel("Real AHI")
+        axs[0].set_ylabel("Predicted AHI")
+
+        cm = metrics.confusion_matrix(patients_best.ahi_real_classes, patients_best.ahi_sleep_classes, labels=[0, 1, 2, 3])
+        
+        axs[1].matshow(cm, cmap=plt.cm.Blues)
+        thresh = cm.max() / 2.
+        for i in range(cm.shape[0]):
+            for j in range(cm.shape[1]):
+                axs[1].text(j, i, format(cm[i, j]),
+                        ha="center", va="center",
+                        color="white" if  cm[i, j] > thresh else "black") 
+
+        
+        labels = ['Healthy', 'Mild', 'Moderate', 'Severe']
+        #f1_score_plot = classif_results_best_f1_ahi.iloc[0]['f1_patients_ms']
+        #print(f1_score_plot)
+        axs[1].set_title(f'Confusion matrix, F1 = {f1_score_plot1:.2f}')
+        axs[1].set_xticklabels([''] + labels)
+        axs[1].set_yticklabels([''] + labels)
+        axs[1].set_xlabel('Predicted')
+        axs[1].set_ylabel('True')
+        
+        fig.tight_layout(rect=[0, 0.03, 1, 0.90])
+        fig.suptitle(data_set+" set. Window Size: "+str(ws)+", Trial: "+fold+", Channels: "+channels_name, fontsize=20)
+        fig.savefig(output_dir+"figures/"+results_name+"_ahi_scores_classification_allLines_thBestF1AHI_"+data_set+".png")
         
         
-    
-    
-    """
-    #plt.figure()
-    fig, axs = plt.subplots(1, 3, figsize=(15, 5))
-    axs[0].plot(thresholds, acs_sleep_all, label="Accuracy")
-    axs[0].plot(thresholds, prs_sleep_all, label="Precision")
-    axs[0].plot(thresholds, recs_sleep_all, label="Recall")
-    axs[0].plot(thresholds, f1s_sleep_all, label="F1-Classification")
-    axs[0].plot(thresholds, f1_patients_ws, label="F1-AHI")
-    #axs[0].plot([threshold_best_f1_classif,threshold_best_f1_classif], [0,1], label = "threshold_best_f1_classif")
-    #axs[0].plot([threshold_crossing_pr,threshold_crossing_pr], [0,1], label = "threshold_crossing_pr")
-    axs[0].plot([threshold_best_f1_ahi,threshold_best_f1_ahi], [0,1], label = "threshold_best_f1_ahi")
-    axs[0].set_title("WS: "+str(ws)+" "+model_name+" fold: "+fold+" ch: "+channels+" dataset: "+data_set)
-    axs[0].set_xlabel("Threshold")
-    axs[0].set_ylabel("Score")
-    axs[0].legend()
-    axs[0].grid()
-    axs[0].set_xlim([0.4, 0.9]) 
-    axs[0].set_ylim([0, 1]) 
-
-    axs[0].set_yticks(np.arange(0, 1, 0.05))
-    axs[0].set_xticks(np.arange(0.4, 0.9, 0.05))
-    """
-    
-    fig, axs = plt.subplots(1, 2, figsize=(10, 5))
-    
-    colors = patients_best.ahi_real_classes
-    #print(colors)
-    colors_scale = ["r", "b", "g", "m"]
-    colors_points = [colors_scale[int(c)] for c in colors]
-    #cmap = plt.cm.rainbow
-    #norm = matplotlib.colors.Normalize(vmin=0, vmax=4)
-    
-    axs[0].scatter(0,0, c="r", label = "Healthy")
-    axs[0].scatter(0,0, c="b", label = "Mild")
-    axs[0].scatter(0,0, c="g", label = "Moderate")
-    axs[0].scatter(0,0, c="m", label = "Severe")
-    axs[0].scatter(patients_best.ahi_reals, patients_best.ahi_sleep_scores, c=colors_points)
-    axs[0].plot([0,110],[5,5], 'k--')
-    axs[0].plot([0,110],[15,15], 'k--')
-    axs[0].plot([0,110],[30,30], 'k--')
-    axs[0].plot([0,110],[0,110], 'k-')
-    
-    axs[0].text(80, 7, "Pred. AHI = 5")
-    axs[0].text(80, 17, "Pred. AHI = 15")
-    axs[0].text(80, 32, "Pred. AHI = 30")
-    axs[0].set_xlim([0, 110]) 
-    axs[0].set_ylim([0, 110]) 
-    axs[0].legend() 
-    axs[0].set_xlabel("Real AHI")
-    axs[0].set_ylabel("Predicted AHI")
-
-    cm = metrics.confusion_matrix(patients_best.ahi_real_classes, patients_best.ahi_sleep_classes, labels=[0, 1, 2, 3])
-    
-    axs[1].matshow(cm, cmap=plt.cm.Blues)
-    thresh = cm.max() / 2.
-    for i in range(cm.shape[0]):
-        for j in range(cm.shape[1]):
-            axs[1].text(j, i, format(cm[i, j]),
-                    ha="center", va="center",
-                    color="white" if  cm[i, j] > thresh else "black") 
-
-    
-    labels = ['Healthy', 'Mild', 'Moderate', 'Severe']
-    #f1_score_plot = classif_results_best_f1_ahi.iloc[0]['f1_patients_ms']
-    #print(f1_score_plot)
-    axs[1].set_title(f'Confusion matrix, F1 = {f1_score_plot1:.2f}')
-    axs[1].set_xticklabels([''] + labels)
-    axs[1].set_yticklabels([''] + labels)
-    axs[1].set_xlabel('Predicted')
-    axs[1].set_ylabel('True')
-    
-    fig.tight_layout(rect=[0, 0.03, 1, 0.90])
-    fig.suptitle(data_set+" set. Window Size: "+str(ws)+", Trial: "+fold+", Channels: "+channels_name, fontsize=20)
-    #fig.savefig(output_dir+"figures/"+results_name+"_ahi_scores_classification_allLines_thBestF1AHI_"+data_set+".png")
-    
-    
     
     
     patients_best = ahi_results_patients[ahi_results_patients.thresholds==threshold_crossing_pr]
@@ -801,9 +725,6 @@ if __name__ == '__main__':
         
         reg = LinearRegression(fit_intercept=False)
         reg.fit(patients_predpos, patients_ahi)
-        
-        #print(reg.coef_)
-        #print(reg.intercept_)
         
         predictions = reg.predict(patients_predpos)
         patients_best["new_ahi_est"] = predictions
@@ -817,82 +738,82 @@ if __name__ == '__main__':
             f.write('REG_intercept_best_th_crossing_pr,'+str(reg.intercept_))
     
     
-    #with open(output_dir+"best_ahis/"+results_name+"_best_patient_PRscores_"+data_set+".csv", "w") as f:
-    #    patients_best.to_csv(f)
+    with open(output_dir+"best_ahis/"+results_name+"_best_patient_PRscores_"+data_set+".csv", "w") as f:
+        patients_best.to_csv(f)
         
+    
+    if plots:    
+        fig, axs = plt.subplots(1, 3, figsize=(15, 5))
+        axs[0].plot(thresholds, acs_sleep_all, label="Accuracy")
+        axs[0].plot(thresholds, prs_sleep_all, label="Precision")
+        axs[0].plot(thresholds, recs_sleep_all, label="Recall")
+        axs[0].plot(thresholds, f1s_sleep_all, label="F1-Classification")
+        axs[0].plot(thresholds, f1_patients_ws, label="F1-AHI")
+        #axs[0].plot([threshold_best_f1_classif,threshold_best_f1_classif], [0,1], label = "threshold_best_f1_classif")
+        axs[0].plot([threshold_crossing_pr,threshold_crossing_pr], [0,1], label = "threshold_crossing_pr")
+        #axs[0].plot([threshold_best_f1_ahi,threshold_best_f1_ahi], [0,1], label = "threshold_best_f1_ahi")
+        axs[0].set_title("WS: "+str(ws)+" "+model_name+" fold: "+fold+" ch: "+channels+" dataset: "+data_set)
+        axs[0].set_xlabel("Threshold")
+        axs[0].set_ylabel("Score")
+        axs[0].legend()
+        axs[0].grid()
+        axs[0].set_xlim([0.4, 0.9]) 
+        axs[0].set_ylim([0, 1]) 
+
+        axs[0].set_yticks(np.arange(0, 1, 0.05))
+        axs[0].set_xticks(np.arange(0.4, 0.9, 0.05))
         
-    #plt.figure()
-    fig, axs = plt.subplots(1, 3, figsize=(15, 5))
-    axs[0].plot(thresholds, acs_sleep_all, label="Accuracy")
-    axs[0].plot(thresholds, prs_sleep_all, label="Precision")
-    axs[0].plot(thresholds, recs_sleep_all, label="Recall")
-    axs[0].plot(thresholds, f1s_sleep_all, label="F1-Classification")
-    axs[0].plot(thresholds, f1_patients_ws, label="F1-AHI")
-    #axs[0].plot([threshold_best_f1_classif,threshold_best_f1_classif], [0,1], label = "threshold_best_f1_classif")
-    axs[0].plot([threshold_crossing_pr,threshold_crossing_pr], [0,1], label = "threshold_crossing_pr")
-    #axs[0].plot([threshold_best_f1_ahi,threshold_best_f1_ahi], [0,1], label = "threshold_best_f1_ahi")
-    axs[0].set_title("WS: "+str(ws)+" "+model_name+" fold: "+fold+" ch: "+channels+" dataset: "+data_set)
-    axs[0].set_xlabel("Threshold")
-    axs[0].set_ylabel("Score")
-    axs[0].legend()
-    axs[0].grid()
-    axs[0].set_xlim([0.4, 0.9]) 
-    axs[0].set_ylim([0, 1]) 
+        colors = patients_best.ahi_real_classes
+        #print(colors)
+        colors_scale = ["r", "b", "g", "m"]
+        colors_points = [colors_scale[int(c)] for c in colors]
+        #cmap = plt.cm.rainbow
+        #norm = matplotlib.colors.Normalize(vmin=0, vmax=4)
+        
+        axs[1].scatter(0,0, c="r", label = "Healthy")
+        axs[1].scatter(0,0, c="b", label = "Mild")
+        axs[1].scatter(0,0, c="g", label = "Moderate")
+        axs[1].scatter(0,0, c="m", label = "Severe")
+        axs[1].scatter(patients_best.ahi_reals, patients_best.ahi_sleep_scores, c=colors_points)
+        axs[1].plot([0,110],[5,5], 'k--')
+        axs[1].plot([0,110],[15,15], 'k--')
+        axs[1].plot([0,110],[30,30], 'k--')
+        axs[1].plot([0,110],[0,110], 'k-')
+        
+        axs[1].text(80, 7, "Pred. AHI = 5")
+        axs[1].text(80, 17, "Pred. AHI = 15")
+        axs[1].text(80, 32, "Pred. AHI = 30")
+        axs[1].set_xlim([0, 110]) 
+        axs[1].set_ylim([0, 110]) 
+        axs[1].legend() 
+        axs[1].set_xlabel("Real AHI")
+        axs[1].set_ylabel("Predicted AHI")
 
-    axs[0].set_yticks(np.arange(0, 1, 0.05))
-    axs[0].set_xticks(np.arange(0.4, 0.9, 0.05))
-    
-    colors = patients_best.ahi_real_classes
-    #print(colors)
-    colors_scale = ["r", "b", "g", "m"]
-    colors_points = [colors_scale[int(c)] for c in colors]
-    #cmap = plt.cm.rainbow
-    #norm = matplotlib.colors.Normalize(vmin=0, vmax=4)
-    
-    axs[1].scatter(0,0, c="r", label = "Healthy")
-    axs[1].scatter(0,0, c="b", label = "Mild")
-    axs[1].scatter(0,0, c="g", label = "Moderate")
-    axs[1].scatter(0,0, c="m", label = "Severe")
-    axs[1].scatter(patients_best.ahi_reals, patients_best.ahi_sleep_scores, c=colors_points)
-    axs[1].plot([0,110],[5,5], 'k--')
-    axs[1].plot([0,110],[15,15], 'k--')
-    axs[1].plot([0,110],[30,30], 'k--')
-    axs[1].plot([0,110],[0,110], 'k-')
-    
-    axs[1].text(80, 7, "Pred. AHI = 5")
-    axs[1].text(80, 17, "Pred. AHI = 15")
-    axs[1].text(80, 32, "Pred. AHI = 30")
-    axs[1].set_xlim([0, 110]) 
-    axs[1].set_ylim([0, 110]) 
-    axs[1].legend() 
-    axs[1].set_xlabel("Real AHI")
-    axs[1].set_ylabel("Predicted AHI")
+        cm = metrics.confusion_matrix(patients_best.ahi_real_classes, patients_best.ahi_sleep_classes, labels=[0, 1, 2, 3])
+        
+        axs[2].matshow(cm, cmap=plt.cm.Blues)
+        thresh = cm.max() / 2.
+        for i in range(cm.shape[0]):
+            for j in range(cm.shape[1]):
+                axs[2].text(j, i, format(cm[i, j]),
+                        ha="center", va="center",
+                        color="white" if  cm[i, j] > thresh else "black") 
 
-    cm = metrics.confusion_matrix(patients_best.ahi_real_classes, patients_best.ahi_sleep_classes, labels=[0, 1, 2, 3])
+        
+        labels = ['Healthy', 'Mild', 'Moderate', 'Severe']
+        f1_score_plot = classif_results_crossing_pr.iloc[0]['f1_patients_ms']
+        #print(f1_score_plot
+        #)
+        axs[2].set_title(f'Confusion matrix, F1 = {f1_score_plot2:.2f}')
+        axs[2].set_xticklabels([''] + labels)
+        axs[2].set_yticklabels([''] + labels)
+        axs[2].set_xlabel('Predicted')
+        axs[2].set_ylabel('True')
+        
+        fig.tight_layout(rect=[0, 0.03, 1, 0.90])
+        fig.suptitle(data_set+" set. Window Size: "+str(ws)+", Trial: "+fold+", Channels: "+channels_name, fontsize=16)
+        fig.savefig(output_dir+"figures/"+results_name+"_ahi_scores_classification_allLines_thBestPCcross_"+data_set+".png")
     
-    axs[2].matshow(cm, cmap=plt.cm.Blues)
-    thresh = cm.max() / 2.
-    for i in range(cm.shape[0]):
-        for j in range(cm.shape[1]):
-            axs[2].text(j, i, format(cm[i, j]),
-                    ha="center", va="center",
-                    color="white" if  cm[i, j] > thresh else "black") 
-
-    
-    labels = ['Healthy', 'Mild', 'Moderate', 'Severe']
-    f1_score_plot = classif_results_crossing_pr.iloc[0]['f1_patients_ms']
-    #print(f1_score_plot
-    #)
-    axs[2].set_title(f'Confusion matrix, F1 = {f1_score_plot2:.2f}')
-    axs[2].set_xticklabels([''] + labels)
-    axs[2].set_yticklabels([''] + labels)
-    axs[2].set_xlabel('Predicted')
-    axs[2].set_ylabel('True')
-    
-    fig.tight_layout(rect=[0, 0.03, 1, 0.90])
-    fig.suptitle(data_set+" set. Window Size: "+str(ws)+", Trial: "+fold+", Channels: "+channels_name, fontsize=16)
-    #fig.savefig(output_dir+"figures/"+results_name+"_ahi_scores_classification_allLines_thBestPCcross_"+data_set+".png")
-   
 
         
         

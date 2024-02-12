@@ -12,7 +12,7 @@ from sklearn.metrics import precision_recall_fscore_support as score
 import matplotlib.pyplot as plt
 
 import json
-
+ 
 def tic():
     #Homemade version of matlab tic and toc functions
     global startTime_for_tictoc
@@ -28,23 +28,8 @@ def toc():
     return time_end
         
 
-def calculate_ahi(y_predicted, thresholds_try, ws, st):
-    num_hours = len(y_predicted)*st / 3600 
-    factor = 60/ws*2 #N of datapoints per min
-    ahi = []
-    ahi_class_l = []
-    for threshold in thresholds_try:
-        y_pred_binary = sum( np.array(y_predicted) > threshold)
-        Predicted_ph = y_pred_binary/num_hours/factor
-        ahi.append(Predicted_ph)
-        ahi_class = calculate_ahi_class(Predicted_ph)
-        ahi_class_l.append(ahi_class)
-        
-    return ahi, ahi_class_l
 
-def calculate_ahi_factor(y_pred, thresholds_try, ws, st, factor):
-    #num_hours = len(y_pred)*st / 3600 
-    #dp_permin = 60/ws*(ws/st) #N of datapoints per min
+def calculate_ahi_factor(y_pred, thresholds_try, factor):
     ahi_l = []
     ahi_class_l = []
     for threshold in thresholds_try:
@@ -55,25 +40,7 @@ def calculate_ahi_factor(y_pred, thresholds_try, ws, st, factor):
         ahi_class_l.append(ahi_class)  
     return ahi_l, ahi_class_l
 
-def calculate_ahi_moving_average(y_pred, threshold, ws, st, n_past):
-    num_hours = len(y_pred)*st / 3600 
-    factor = 60/ws*2 #N of datapoints per min
-    y_pred_ma = prob_moving_average(y_pred, n_past)
-    y_pred_binary = sum( y_pred_ma > threshold)
-    #print(y_pred_binary)
-    ahi = y_pred_binary/num_hours/factor
-    ahi_class = calculate_ahi_class(ahi)   
-    return ahi, ahi_class
 
-
-def prob_moving_average(y_pred, n_past):
-    y_pred_i = np.insert(y_pred, 0, 0)
-    cumsum_vec = np.cumsum(y_pred_i) 
-    y_pred_ma = (cumsum_vec[n_past:] - cumsum_vec[:-n_past]) /n_past
-    for i in range(n_past-1):
-        y_pred_ma = np.insert(y_pred_ma, i, np.average(y_pred[:i+1]))
-    return y_pred_ma
-    
 
 def calculate_ahi_class(ahi):
     if ahi < 5:
@@ -88,35 +55,6 @@ def calculate_ahi_class(ahi):
     return ahi_class
 
 
-
-"""
-file = "/work/projects/heart_project/OSA_MW/all_30_ws_10648_files_ahi_sleep_newSF/PREDICTIONS/VAL/Model3_1_Ch_2_3_4_5/mros-visit1-aa0744.hdf5"
-with h5py.File(file, 'r') as f:
-    y_real = np.array(f["y_real"][:]) 
-    y_pred = np.array(f["y_pred"][:])
-    y_sleep = np.array(f["y_sleep"][:]) 
-
-y_all = np.append([y_real], [y_pred], axis=0)
-y_all2 = np.append(y_all, [y_sleep], axis=0)
-
-y_pred_ma = prob_moving_average(y_pred, n_past)
-y_all3 = np.append(y_all2, [y_pred_ma], axis=0)
-
-np.savetxt("/scratch/users/mretamales/OSA_scratch/new_pipeline/values_st15.csv", y_all3, delimiter=",")
-
-ws = 30
-st=15
-n_past=2
-threshold=0.67
-calculate_ahi_moving_average(y_pred, threshold, ws, st, n_past)
-
-
-for n_past in range(1,10):
-    for threshold in [0.5, 0.6, 0.7]:
-        calculate_ahi_moving_average(y_pred, threshold, ws, st, n_past)
-
-
-"""
 
 if __name__ == '__main__':
     
@@ -236,10 +174,8 @@ if __name__ == '__main__':
         ahi_sleep_classes = []
         
         for current_file in files_pred:
-            #print(current_file)
             try:
                 with h5py.File(model+"/"+current_file, 'r') as f:
-                #with h5py.File(file, 'r') as f:
                     y_real = np.array(f["y_real"][:]) 
                     y_pred = np.array(f["y_pred"][:])
                     y_sleep = np.array(f["y_sleep"][:])
@@ -254,14 +190,14 @@ if __name__ == '__main__':
             y_reals.extend(y_real)
             y_preds.extend(y_pred)
             y_sleeps.extend(y_sleep)
-            ahi, ahi_class = calculate_ahi_factor(y_pred, thresholds_try, ws, st, factor)
+            ahi, ahi_class = calculate_ahi_factor(y_pred, thresholds_try, factor)
             ahi_scores.append(ahi)
             ahi_classes.append(ahi_class)
             # Take out the sleeping parts
             indx_s = np.nonzero(y_sleep)
             #print(indx_s[0])
             y_pred_sleep = np.array(y_pred)[indx_s]
-            ahi_sleep, ahi_class_sleep = calculate_ahi_factor(y_pred_sleep, thresholds_try, ws, st, factor)
+            ahi_sleep, ahi_class_sleep = calculate_ahi_factor(y_pred_sleep, thresholds_try, factor)
             ahi_sleep_scores.append(ahi_sleep)
             ahi_sleep_classes.append(ahi_class_sleep)
             #GET file
@@ -274,11 +210,11 @@ if __name__ == '__main__':
             #print(ahi)
         
         
-        #colnames = ["AHI_real"] +  ["AHI_T_"+str(i) for i in thresholds_try] +  ["AHI_T_sleep_"+str(i) for i in thresholds_try] + ["AHI_CLASS_R"] + ["AHI_Class_T_"+str(i) for i in thresholds_try] + ["AHI_Class_T_sleep_"+str(i) for i in thresholds_try]
-        #ahi_dataframe = pd.concat([pd.DataFrame(ahi_real), pd.DataFrame(ahi_scores), pd.DataFrame(ahi_sleep_scores), pd.DataFrame(ahi_real_classes), pd.DataFrame(ahi_classes), pd.DataFrame(ahi_sleep_classes)], axis=1)
-        #ahi_dataframe.columns = colnames
-        #with open(results_name+"_ahi_scores"+data_set+".csv", "w") as f:
-        #    ahi_dataframe.to_csv(f)
+        colnames = ["AHI_real"] +  ["AHI_T_"+str(i) for i in thresholds_try] +  ["AHI_T_sleep_"+str(i) for i in thresholds_try] + ["AHI_CLASS_R"] + ["AHI_Class_T_"+str(i) for i in thresholds_try] + ["AHI_Class_T_sleep_"+str(i) for i in thresholds_try]
+        ahi_dataframe = pd.concat([pd.DataFrame(ahi_real), pd.DataFrame(ahi_scores), pd.DataFrame(ahi_sleep_scores), pd.DataFrame(ahi_real_classes), pd.DataFrame(ahi_classes), pd.DataFrame(ahi_sleep_classes)], axis=1)
+        ahi_dataframe.columns = colnames
+        with open(results_name+"_ahi_scores"+data_set+".csv", "w") as f:
+            ahi_dataframe.to_csv(f)
          
         
         # Take out the sleeping parts

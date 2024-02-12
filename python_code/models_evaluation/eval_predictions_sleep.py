@@ -15,8 +15,6 @@ import json
 
 
 if __name__ == '__main__':
-    
-    # python eval_predictions_ahiclass.py "/work/projects/heart_project/OSA_MW/all_80_ws_10648_files_ahi_sleep_newSF/" 80 "VAL"
 
     ##  CHANNELS
     # 1 ECG
@@ -31,7 +29,6 @@ if __name__ == '__main__':
     # 10 SPO2 + 25
     
     src = sys.argv[1]  # 
-    #src = "/work/projects/heart_project/OSA_MW/all_30_ws_10648_files_ahi_sleep_newSF/"
     ws = int(sys.argv[2])
     st = int(ws/2)
     data_set = sys.argv[3]
