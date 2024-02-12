@@ -246,7 +246,8 @@ if __name__ == '__main__':
             inx_select =random.sample(data["awake"], n_select) + random.sample(data["sleep"], int(n_select/2)) + random.sample(data["ahi"],  int(n_select/2))
             inx_select = sorted(inx_select)    
             EXTRACT_FEATURES_SLEEP(fold, src_data, src_result, models, channels_id, current_file, dim, inx_select)
-    
+        else: 
+            print("Choose ahi or sleep")
             
     
     ## VALIDATION
@@ -281,4 +282,6 @@ if __name__ == '__main__':
             inx_select = sorted(inx_select)    
             EXTRACT_FEATURES_SLEEP(fold, src_data, src_result, models, channels_id, current_file, dim, inx_select)
     
+        else: 
+            print("Choose ahi or sleep")
     print("__________________ OVER _________________" )
