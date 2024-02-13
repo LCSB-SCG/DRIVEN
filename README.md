@@ -64,14 +64,46 @@ This assist physicians in diagnosing the severity of apneas.
       python train_lgbm.py $fold $working_directory $ahi_or_sleep $last_layer
 
 
-- [**Feature extraction**](https://github.com/LCSB-SCG/DRIVEN/tree/main/python_code/feature_extraction):
- 
-- [**Make predictions**](https://github.com/LCSB-SCG/DRIVEN/tree/main/python_code/make_prediction):
+- [**Feature extraction**](https://github.com/LCSB-SCG/DRIVEN/tree/main/python_code/feature_extraction):\
+  Scripts to run the trained NN models on the different window files and extract the freatures to train or evaluate the lgbm model. **extract_feat_*.py:** cam be accelerate by running it in paralell.\
+  **combine_train.py:** combines all the features extracted for all patients in training and validation to feed the **train_lgbm.py:** script.
+  
+- [**Make predictions**](https://github.com/LCSB-SCG/DRIVEN/tree/main/python_code/make_prediction):\
+  **combine_train.py:** Gets the features extracted from **extract_feat_train.py:**, concatenates them and runs them through the different (different combinantions) lgbm models to get the final predictions. Can be used for ahi-events or sleep prediction by changing the input parameters. 
 
-- [**Models evaluation**](https://github.com/LCSB-SCG/DRIVEN/tree/main/python_code/models_evaluation):
+- [**Models evaluation**](https://github.com/LCSB-SCG/DRIVEN/tree/main/python_code/models_evaluation):\
+  These scripts compare the classificationpredictions with the grouth truth, for ahi-events and sleep, and make the AHI prediction per patient and model. 
 
 - [**Figures**](https://github.com/LCSB-SCG/DRIVEN/tree/main/python_code/figures):
+  Codes used to create the figures for the paper: **TOWARDS AUTOMATIC HOME-BASED SLEEP APNEA ESTIMATION USING DEEP LEARNING**. They use the files created by the models evaluation and plot them. 
 
 ## Results
+
+**Apnea-hypopnea events classification**
+
+<img src='https://github.com/LCSB-SCG/DRIVEN/assets/26947730/e7555308-dc67-4603-8786-1d3acfbfca9f' width='250'>
+<img src='https://github.com/LCSB-SCG/DRIVEN/assets/26947730/f185b1d4-9440-426f-8e8d-fe83658322b6' width='250'>
+
+
+**Sleep Awake classification**
+
+<img src='https://github.com/LCSB-SCG/DRIVEN/assets/26947730/d05b86d7-9b53-45ee-a786-09ef4865ea0d' width='250'>
+<img src='https://github.com/LCSB-SCG/DRIVEN/assets/26947730/d4124a32-285d-43b1-8228-a2e6e6659562' width='250'>
+
+
+**Personalized overnight segmentation**
+
+<img src='https://github.com/LCSB-SCG/DRIVEN/assets/26947730/74cd4ee0-47d4-4175-9b52-327cf2807761' width='500'>
+
+
+**AHI-severity Classification on test set**
+
+<img src='https://github.com/LCSB-SCG/DRIVEN/assets/26947730/36a14fec-cf60-4e37-888c-e5579b44ad6d' width='250'>
+<img src='https://github.com/LCSB-SCG/DRIVEN/assets/26947730/32b15c76-b636-417d-9f64-13adc9444de7' width='300'>
+
+
+
+
+
 
 
