@@ -140,6 +140,8 @@ try
 
             %% GEN IMG
             [count_img,output_vec]=gen_img_stride_sleep(qq,DATA_short,file_out,tw,stride, fs,dim,label_short,total_sensors, spo2_delays,sleep_short, sec_init);
+            %[count_img,output_vec]=gen_img_stride_ahi_types(qq,DATA_short,file_out,tw,stride, fs,dim,label_short,total_sensors, spo2_delays,sleep_short, sec_init);
+            
             total_samples=[total_samples count_img];
         end
         
